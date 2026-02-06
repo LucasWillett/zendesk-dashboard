@@ -392,7 +392,8 @@ def generate_html(data):
 <body>
     <div class="container">
         <!-- Header -->
-        <div class="dashboard">
+        <div class="dashboard" style="text-align: center;">
+            <img src="https://media.licdn.com/dms/image/v2/D560BAQF3gD_CaXzIBg/company-logo_200_200/B56ZVIqG4kHoAI-/0/1740680752906/visiting_media_logo?e=2147483647&v=beta&t=djoZIpPoPVhvn_sO_LBSXyjGT-Hn906UWsbIARtiiLU" alt="Visiting Media" style="width: 60px; height: 60px; border-radius: 12px; margin-bottom: 15px;">
             <h1>Support Pulse: Beta Tags</h1>
             <div class="updated">Last updated: {data['updated']}</div>
             <div class="links">
