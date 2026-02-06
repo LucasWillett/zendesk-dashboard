@@ -283,6 +283,26 @@ def generate_ticket_rows(tickets):
     return rows
 
 
+def generate_tag_summary(tickets):
+    """Generate tag count summary from tickets"""
+    tag_counts = {}
+    for ticket in tickets:
+        for tag in ticket['beta_tags']:
+            tag_counts[tag] = tag_counts.get(tag, 0) + 1
+
+    # Sort by count descending
+    sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)
+
+    rows = ""
+    for tag, count in sorted_tags:
+        rows += f'''
+            <tr>
+                <td><span class="tag">{tag}</span></td>
+                <td style="text-align: center;">{count}</td>
+            </tr>'''
+    return rows, len(tickets)
+
+
 def generate_html(data):
     """Generate the dashboard HTML"""
     week = data['week']
@@ -290,7 +310,7 @@ def generate_html(data):
     history = data['history']
 
     week_rows = generate_ticket_rows(week['beta_tickets'])
-    alltime_rows = generate_ticket_rows(alltime['beta_tickets'])
+    tag_summary_rows, tag_total = generate_tag_summary(alltime['beta_tickets'])
 
     # Chart data - convert to JSON for proper null handling
     chart_labels = json.dumps([w['label'] for w in history])
@@ -541,21 +561,18 @@ def generate_html(data):
             </div>
 
             <div class="ticket-section" style="margin-top: 40px;">
-                <h3>Beta Tickets Summary (Jan 21 - Mar 8, 2026)</h3>
+                <h3>Beta Tickets by Tag (Jan 21 - Mar 8, 2026)</h3>
                 <p style="color: rgba(255,255,255,0.6); margin-bottom: 15px;">
                     {alltime['beta']} beta-tagged tickets out of {alltime['total']} total ({alltime['percentage']}%)
                 </p>
-                {f'''<table class="ticket-table">
+                {f'''<table class="ticket-table" style="max-width: 300px;">
                     <thead>
                         <tr>
-                            <th>Subject</th>
-                            <th>Account</th>
-                            <th>Requester</th>
-                            <th>Tags</th>
-                            <th>Created</th>
+                            <th>Tag</th>
+                            <th style="text-align: center;">Count</th>
                         </tr>
                     </thead>
-                    <tbody>{alltime_rows}</tbody>
+                    <tbody>{tag_summary_rows}</tbody>
                 </table>''' if alltime['beta_tickets'] else '<div class="no-tickets">No beta-tagged tickets yet</div>'}
             </div>
         </div>
