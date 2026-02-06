@@ -8,6 +8,13 @@ import json
 import requests
 from datetime import datetime, timedelta
 
+# Import Gmail fetch for Help Center views
+try:
+    from gmail_fetch import fetch_help_center_views
+    GMAIL_AVAILABLE = True
+except ImportError:
+    GMAIL_AVAILABLE = False
+
 # Config from environment variables (set in GitHub Secrets)
 ZENDESK_SUBDOMAIN = os.environ.get('ZENDESK_SUBDOMAIN', 'visitingmedia')
 ZENDESK_EMAIL = os.environ.get('ZENDESK_EMAIL', '')
@@ -244,6 +251,20 @@ def get_ticket_data():
     alltime_total = len(alltime_filtered)
     alltime_beta_count = len(alltime_beta)
 
+    # Fetch Help Center article views from Gmail
+    help_center_views = None
+    if GMAIL_AVAILABLE:
+        print("\n--- HELP CENTER VIEWS ---")
+        try:
+            result = fetch_help_center_views('Dashboard_auto')
+            if result:
+                help_center_views = result['views']
+                print(f"Help Center views: {help_center_views}")
+            else:
+                print("No Help Center data found in email")
+        except Exception as e:
+            print(f"Error fetching Help Center data: {e}")
+
     return {
         'week': {
             'total': week_total,
@@ -262,6 +283,7 @@ def get_ticket_data():
             'beta_tickets': alltime_beta_details
         },
         'history': weekly_data,
+        'help_center_views': help_center_views,
         'updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')
     }
 
@@ -308,6 +330,7 @@ def generate_html(data):
     week = data['week']
     alltime = data['alltime']
     history = data['history']
+    help_center_views = data.get('help_center_views')
 
     week_rows = generate_ticket_rows(week['beta_tickets'])
     tag_summary_rows, tag_total = generate_tag_summary(alltime['beta_tickets'])
@@ -317,6 +340,23 @@ def generate_html(data):
     chart_beta = json.dumps([w['beta'] for w in history])
     chart_total = json.dumps([w['total'] for w in history])
     chart_pct = json.dumps([w['percentage'] for w in history])
+
+    # Help Center widget HTML
+    if help_center_views is not None:
+        help_center_html = f'''
+        <div class="dashboard" style="background: rgba(74, 154, 168, 0.2);">
+            <div class="section-label">Help Center</div>
+            <h2>Article Views</h2>
+            <div class="metrics" style="grid-template-columns: 1fr;">
+                <div class="metric">
+                    <div class="metric-value" style="color: #6bc5d2;">{help_center_views:,}</div>
+                    <div class="metric-label">Total Views (Since Beta Release)</div>
+                </div>
+            </div>
+        </div>
+        '''
+    else:
+        help_center_html = ''
 
     # Pre-compute conditional HTML sections to avoid f-string nesting issues
     if week['beta_tickets']:
@@ -562,6 +602,9 @@ def generate_html(data):
                 </div>
             </div>
         </div>
+
+        <!-- Help Center Views -->
+        {help_center_html}
 
         <!-- Weekly Trend Chart -->
         <div class="dashboard">
