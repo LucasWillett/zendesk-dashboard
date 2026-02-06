@@ -379,7 +379,7 @@ def generate_html(data):
         }}
         .metrics {{
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 20px;
             margin-bottom: 20px;
         }}
@@ -504,10 +504,6 @@ def generate_html(data):
                     <div class="metric-value">{week['beta']}</div>
                     <div class="metric-label">Beta Tagged</div>
                 </div>
-                <div class="metric total">
-                    <div class="metric-value">{week['total']}</div>
-                    <div class="metric-label">Total Tickets</div>
-                </div>
                 <div class="metric percentage">
                     <div class="metric-value">{week['percentage']}%</div>
                     <div class="metric-label">Beta %</div>
@@ -541,10 +537,6 @@ def generate_html(data):
                     <div class="metric-value">{alltime['beta']}</div>
                     <div class="metric-label">Beta Tagged</div>
                 </div>
-                <div class="metric total">
-                    <div class="metric-value">{alltime['total']}</div>
-                    <div class="metric-label">Total Tickets</div>
-                </div>
                 <div class="metric percentage">
                     <div class="metric-value">{alltime['percentage']}%</div>
                     <div class="metric-label">Beta %</div>
@@ -563,7 +555,7 @@ def generate_html(data):
             <div class="ticket-section" style="margin-top: 40px;">
                 <h3>Beta Tickets by Tag (Jan 21 - Mar 8, 2026)</h3>
                 <p style="color: rgba(255,255,255,0.6); margin-bottom: 15px;">
-                    {alltime['beta']} beta-tagged tickets out of {alltime['total']} total ({alltime['percentage']}%)
+                    {alltime['beta']} beta-tagged tickets ({alltime['percentage']}% of support volume)
                 </p>
                 {f'''<table class="ticket-table" style="max-width: 300px;">
                     <thead>
