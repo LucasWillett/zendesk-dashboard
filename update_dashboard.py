@@ -15,6 +15,13 @@ try:
 except ImportError:
     GMAIL_AVAILABLE = False
 
+# Import sentiment analysis
+try:
+    from sentiment_analysis import analyze_ticket_sentiment
+    SENTIMENT_AVAILABLE = True
+except ImportError:
+    SENTIMENT_AVAILABLE = False
+
 # Config from environment variables (set in GitHub Secrets)
 ZENDESK_SUBDOMAIN = os.environ.get('ZENDESK_SUBDOMAIN', 'visitingmedia')
 ZENDESK_EMAIL = os.environ.get('ZENDESK_EMAIL', '')
@@ -265,6 +272,15 @@ def get_ticket_data():
         except Exception as e:
             print(f"Error fetching Help Center data: {e}")
 
+    # Analyze sentiment of all-time beta tickets
+    sentiment_data = None
+    if SENTIMENT_AVAILABLE and alltime_beta_details:
+        print("\n--- SENTIMENT ANALYSIS ---")
+        try:
+            sentiment_data = analyze_ticket_sentiment(alltime_beta_details)
+        except Exception as e:
+            print(f"Error analyzing sentiment: {e}")
+
     return {
         'week': {
             'total': week_total,
@@ -284,6 +300,7 @@ def get_ticket_data():
         },
         'history': weekly_data,
         'help_center_views': help_center_views,
+        'sentiment': sentiment_data,
         'updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')
     }
 
@@ -331,6 +348,7 @@ def generate_html(data):
     alltime = data['alltime']
     history = data['history']
     help_center_views = data.get('help_center_views')
+    sentiment = data.get('sentiment')
 
     week_rows = generate_ticket_rows(week['beta_tickets'])
     tag_summary_rows, tag_total = generate_tag_summary(alltime['beta_tickets'])
@@ -357,6 +375,50 @@ def generate_html(data):
         '''
     else:
         help_center_html = ''
+
+    # Sentiment widget HTML
+    if sentiment:
+        breakdown = sentiment.get('sentiment_breakdown', {})
+        positive = breakdown.get('positive', 0)
+        neutral = breakdown.get('neutral', 0)
+        negative = breakdown.get('negative', 0)
+        total_analyzed = positive + neutral + negative
+        overall = sentiment.get('overall_sentiment', 'neutral')
+        summary = sentiment.get('summary', '')
+
+        # Emoji for overall sentiment
+        sentiment_emoji = {'positive': '😊', 'neutral': '😐', 'negative': '😟'}.get(overall, '😐')
+        sentiment_color = {'positive': '#4ade80', 'neutral': '#fbbf24', 'negative': '#f87171'}.get(overall, '#fbbf24')
+
+        sentiment_html = f'''
+        <div class="dashboard" style="background: rgba(74, 154, 168, 0.15);">
+            <div class="section-label">Customer Sentiment</div>
+            <h2>Beta Ticket Analysis</h2>
+            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
+                <div style="font-size: 48px;">{sentiment_emoji}</div>
+                <div>
+                    <div style="font-size: 24px; font-weight: bold; color: {sentiment_color}; text-transform: capitalize;">{overall}</div>
+                    <div style="color: rgba(255,255,255,0.6); font-size: 14px;">{summary}</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <div style="background: rgba(74, 222, 128, 0.2); padding: 15px 25px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: bold; color: #4ade80;">{positive}</div>
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase;">Positive</div>
+                </div>
+                <div style="background: rgba(251, 191, 36, 0.2); padding: 15px 25px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: bold; color: #fbbf24;">{neutral}</div>
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase;">Neutral</div>
+                </div>
+                <div style="background: rgba(248, 113, 113, 0.2); padding: 15px 25px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: bold; color: #f87171;">{negative}</div>
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase;">Negative</div>
+                </div>
+            </div>
+        </div>
+        '''
+    else:
+        sentiment_html = ''
 
     # Pre-compute conditional HTML sections to avoid f-string nesting issues
     if week['beta_tickets']:
@@ -605,6 +667,9 @@ def generate_html(data):
 
         <!-- Help Center Views -->
         {help_center_html}
+
+        <!-- Customer Sentiment -->
+        {sentiment_html}
 
         <!-- Weekly Trend Chart -->
         <div class="dashboard">
