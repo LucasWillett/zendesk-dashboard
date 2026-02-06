@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: '0 11 * * *'  # Daily at 6am EST (11am UTC)
     - cron: '*/15 * * * *'  # Every 15 minutes for ticket data
-    - cron: '0 14 * * 5'  # Fridays at 9am EST (14:00 UTC) - weekly summary email
+    - cron: '0 14 * * 1'  # Mondays at 9am EST (14:00 UTC) - weekly summary email
   workflow_dispatch:  # Manual trigger
   push:
     branches: [main]
@@ -39,7 +39,7 @@ jobs:
         run: python update_dashboard.py
 
       - name: Send Weekly Summary Email
-        if: github.event.schedule == '0 14 * * 5'
+        if: github.event.schedule == '0 14 * * 1'
         env:
           ZENDESK_SUBDOMAIN: ${{ secrets.ZENDESK_SUBDOMAIN }}
           ZENDESK_EMAIL: ${{ secrets.ZENDESK_EMAIL }}

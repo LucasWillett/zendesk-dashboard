@@ -52,11 +52,15 @@ def get_gmail_service():
 
 
 def get_week_dates():
-    """Get this week's date range (Monday to today)"""
+    """Get last week's date range (Monday to Sunday) for Monday morning reports"""
     today = datetime.now()
+    # Go back to last Monday
     days_since_monday = today.weekday()
-    start = today - timedelta(days=days_since_monday)
-    return start.strftime('%b %d'), today.strftime('%b %d, %Y')
+    if days_since_monday == 0:  # If today is Monday, report on previous week
+        days_since_monday = 7
+    last_monday = today - timedelta(days=days_since_monday)
+    last_sunday = last_monday + timedelta(days=6)
+    return last_monday.strftime('%b %d'), last_sunday.strftime('%b %d, %Y')
 
 
 def create_summary_email(week_beta, week_pct, alltime_beta, alltime_pct, tags_summary):
@@ -80,7 +84,7 @@ def create_summary_email(week_beta, week_pct, alltime_beta, alltime_pct, tags_su
     html_content = f"""
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #1a2332; color: white; padding: 30px; border-radius: 12px;">
-            <h1 style="margin: 0 0 5px 0; font-size: 24px;">Weekly Beta Summary</h1>
+            <h1 style="margin: 0 0 5px 0; font-size: 24px;">Support Pulse Weekly</h1>
             <p style="margin: 0; color: rgba(255,255,255,0.6); font-size: 14px;">{week_start} - {week_end}</p>
         </div>
 
@@ -114,7 +118,7 @@ def create_summary_email(week_beta, week_pct, alltime_beta, alltime_pct, tags_su
     """
 
     plain_content = f"""
-Weekly Beta Summary
+Support Pulse Weekly
 {week_start} - {week_end}
 
 {status}
@@ -193,7 +197,7 @@ def main(test_mode=False):
 
     # Create email content
     week_start, week_end = get_week_dates()
-    subject = f"Weekly Beta Summary: {week_start} - {week_end}"
+    subject = f"Support Pulse Weekly: {week_start} - {week_end}"
     html_content, plain_content = create_summary_email(
         week_beta, week_pct, alltime_beta, alltime_pct, tags_summary
     )
