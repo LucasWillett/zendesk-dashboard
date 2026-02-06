@@ -168,7 +168,7 @@
         <div class="dashboard" style="text-align: center;">
             <img src="https://media.licdn.com/dms/image/v2/D560BAQF3gD_CaXzIBg/company-logo_200_200/B56ZVIqG4kHoAI-/0/1740680752906/visiting_media_logo?e=2147483647&v=beta&t=djoZIpPoPVhvn_sO_LBSXyjGT-Hn906UWsbIARtiiLU" alt="Visiting Media" style="width: 60px; height: 60px; border-radius: 12px; margin-bottom: 15px;">
             <h1>Support Pulse: Beta Tags</h1>
-            <div class="updated">Last updated: 2026-02-06 08:12:35 UTC</div>
+            <div class="updated">Last updated: 2026-02-06 08:16:15 UTC</div>
             <div class="links">
                 <a href="https://visitingmedia.zendesk.com/explore/studio#/dashboards/precanned/9425F76AF99EC760E6FDE83C5A99EE472407CBD6B0D5A3DA700AB5DDE040C541" target="_blank">View in Zendesk Explore</a>
             </div>
@@ -219,9 +219,21 @@
                     <div class="metric-label">Beta %</div>
                 </div>
             </div>
-            
-            <div class="ticket-section">
-                <h3>All Tagged Tickets</h3>
+        </div>
+
+        <!-- Weekly Trend Chart -->
+        <div class="dashboard">
+            <div class="section-label">Weekly Trend</div>
+            <h2>Jan 19 - Mar 8, 2026</h2>
+            <div style="height: 300px; margin-top: 20px;">
+                <canvas id="trendChart"></canvas>
+            </div>
+
+            <div class="ticket-section" style="margin-top: 40px;">
+                <h3>Beta Tickets Summary (Jan 21 - Mar 8, 2026)</h3>
+                <p style="color: rgba(255,255,255,0.6); margin-bottom: 15px;">
+                    5 beta-tagged tickets out of 95 total (5.3%)
+                </p>
                 <table class="ticket-table">
                     <thead>
                         <tr>
@@ -271,15 +283,6 @@
                 </table>
             </div>
         </div>
-
-        <!-- Weekly Trend Chart -->
-        <div class="dashboard">
-            <div class="section-label">Weekly Trend</div>
-            <h2>Jan 19 - Mar 8, 2026</h2>
-            <div style="height: 300px; margin-top: 20px;">
-                <canvas id="trendChart"></canvas>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -287,25 +290,25 @@
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Jan 19', 'Jan 26', 'Feb 02', 'Feb 09', 'Feb 16', 'Feb 23', 'Mar 02'],
+                labels: ["Jan 19", "Jan 26", "Feb 02", "Feb 09", "Feb 16", "Feb 23", "Mar 02"],
                 datasets: [
                     {
                         label: 'Beta Tagged',
-                        data: [2, 3, 0, None, None, None, None],
+                        data: [2, 3, 0, null, null, null, null],
                         backgroundColor: '#4a9aa8',
                         borderRadius: 6,
                         order: 2
                     },
                     {
                         label: 'Total Tickets',
-                        data: [41, 44, 27, None, None, None, None],
+                        data: [41, 44, 27, null, null, null, null],
                         backgroundColor: 'rgba(107, 197, 210, 0.3)',
                         borderRadius: 6,
                         order: 3
                     },
                     {
                         label: 'Beta %',
-                        data: [4.9, 6.8, 0.0, None, None, None, None],
+                        data: [4.9, 6.8, 0.0, null, null, null, null],
                         type: 'line',
                         borderColor: '#ffffff',
                         backgroundColor: 'transparent',

@@ -292,11 +292,11 @@ def generate_html(data):
     week_rows = generate_ticket_rows(week['beta_tickets'])
     alltime_rows = generate_ticket_rows(alltime['beta_tickets'])
 
-    # Chart data
-    chart_labels = [w['label'] for w in history]
-    chart_beta = [w['beta'] for w in history]
-    chart_total = [w['total'] for w in history]
-    chart_pct = [w['percentage'] for w in history]
+    # Chart data - convert to JSON for proper null handling
+    chart_labels = json.dumps([w['label'] for w in history])
+    chart_beta = json.dumps([w['beta'] for w in history])
+    chart_total = json.dumps([w['total'] for w in history])
+    chart_pct = json.dumps([w['percentage'] for w in history])
 
     html = f'''<!DOCTYPE html>
 <html lang="en">
@@ -530,9 +530,21 @@ def generate_html(data):
                     <div class="metric-label">Beta %</div>
                 </div>
             </div>
-            
-            <div class="ticket-section">
-                <h3>All Tagged Tickets</h3>
+        </div>
+
+        <!-- Weekly Trend Chart -->
+        <div class="dashboard">
+            <div class="section-label">Weekly Trend</div>
+            <h2>Jan 19 - Mar 8, 2026</h2>
+            <div style="height: 300px; margin-top: 20px;">
+                <canvas id="trendChart"></canvas>
+            </div>
+
+            <div class="ticket-section" style="margin-top: 40px;">
+                <h3>Beta Tickets Summary (Jan 21 - Mar 8, 2026)</h3>
+                <p style="color: rgba(255,255,255,0.6); margin-bottom: 15px;">
+                    {alltime['beta']} beta-tagged tickets out of {alltime['total']} total ({alltime['percentage']}%)
+                </p>
                 {f'''<table class="ticket-table">
                     <thead>
                         <tr>
@@ -544,16 +556,7 @@ def generate_html(data):
                         </tr>
                     </thead>
                     <tbody>{alltime_rows}</tbody>
-                </table>''' if alltime['beta_tickets'] else '<div class="no-tickets">No beta-tagged tickets since release</div>'}
-            </div>
-        </div>
-
-        <!-- Weekly Trend Chart -->
-        <div class="dashboard">
-            <div class="section-label">Weekly Trend</div>
-            <h2>Jan 19 - Mar 8, 2026</h2>
-            <div style="height: 300px; margin-top: 20px;">
-                <canvas id="trendChart"></canvas>
+                </table>''' if alltime['beta_tickets'] else '<div class="no-tickets">No beta-tagged tickets yet</div>'}
             </div>
         </div>
     </div>
