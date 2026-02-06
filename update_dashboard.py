@@ -102,29 +102,38 @@ def get_alltime_range():
     return BETA_RELEASE_DATE, today.strftime('%Y-%m-%d')
 
 
-def get_weekly_ranges(num_weeks=8):
-    """Get date ranges for the last N weeks (Monday to Sunday)"""
+def get_weekly_ranges():
+    """Get date ranges from beta release through end date (Monday to Sunday)"""
     today = datetime.now()
     weeks = []
 
-    # Find the most recent Monday
-    days_since_monday = today.weekday()  # Monday = 0
-    current_monday = today - timedelta(days=days_since_monday)
+    # Start from the Monday of the beta release week
+    beta_start = datetime.strptime(BETA_RELEASE_DATE, '%Y-%m-%d')
+    days_since_monday = beta_start.weekday()
+    first_monday = beta_start - timedelta(days=days_since_monday)
 
-    for i in range(num_weeks):
-        week_start = current_monday - timedelta(weeks=i)
-        week_end = week_start + timedelta(days=6)  # Sunday
-        # Don't go past today
+    # End date: March 8, 2026
+    end_date = datetime(2026, 3, 8)
+
+    current_monday = first_monday
+    while current_monday <= end_date:
+        week_end = current_monday + timedelta(days=6)  # Sunday
+
+        # For past/current weeks, cap at today if needed
+        display_end = week_end
         if week_end > today:
-            week_end = today
+            display_end = today if current_monday <= today else week_end
+
         weeks.append({
-            'start': week_start.strftime('%Y-%m-%d'),
+            'start': current_monday.strftime('%Y-%m-%d'),
             'end': week_end.strftime('%Y-%m-%d'),
-            'label': week_start.strftime('%b %d')
+            'label': current_monday.strftime('%b %d'),
+            'is_future': current_monday > today
         })
 
-    # Reverse so oldest is first (for chart)
-    return list(reversed(weeks))
+        current_monday += timedelta(weeks=1)
+
+    return weeks
 
 
 def fetch_tickets_for_range(start_date, end_date, group_ids):
@@ -200,22 +209,35 @@ def get_ticket_data():
 
     # Historical weekly data for chart
     print(f"\n--- WEEKLY HISTORY ---")
-    weekly_ranges = get_weekly_ranges(8)
+    weekly_ranges = get_weekly_ranges()
     weekly_data = []
+    today = datetime.now()
     for wr in weekly_ranges:
-        print(f"  Fetching {wr['label']}...")
-        filtered, beta = fetch_tickets_for_range(wr['start'], wr['end'], group_ids)
-        total = len(filtered)
-        beta_count = len(beta)
-        pct = round((beta_count / total * 100), 1) if total > 0 else 0
-        weekly_data.append({
-            'label': wr['label'],
-            'start': wr['start'],
-            'end': wr['end'],
-            'total': total,
-            'beta': beta_count,
-            'percentage': pct
-        })
+        if wr.get('is_future'):
+            # Future week - no data yet
+            print(f"  {wr['label']} (future)")
+            weekly_data.append({
+                'label': wr['label'],
+                'start': wr['start'],
+                'end': wr['end'],
+                'total': None,
+                'beta': None,
+                'percentage': None
+            })
+        else:
+            print(f"  Fetching {wr['label']}...")
+            filtered, beta = fetch_tickets_for_range(wr['start'], wr['end'], group_ids)
+            total = len(filtered)
+            beta_count = len(beta)
+            pct = round((beta_count / total * 100), 1) if total > 0 else 0
+            weekly_data.append({
+                'label': wr['label'],
+                'start': wr['start'],
+                'end': wr['end'],
+                'total': total,
+                'beta': beta_count,
+                'percentage': pct
+            })
 
     week_total = len(week_filtered)
     week_beta_count = len(week_beta)
@@ -529,7 +551,7 @@ def generate_html(data):
         <!-- Weekly Trend Chart -->
         <div class="dashboard">
             <div class="section-label">Weekly Trend</div>
-            <h2>Last 8 Weeks</h2>
+            <h2>Jan 19 - Mar 8, 2026</h2>
             <div style="height: 300px; margin-top: 20px;">
                 <canvas id="trendChart"></canvas>
             </div>
