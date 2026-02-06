@@ -8,8 +8,11 @@ import os
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.oauth2.credentials import Credentials
 
-# Gmail API scope - read-only access to emails
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+# Gmail API scopes - read emails and send emails
+SCOPES = [
+    'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/gmail.send'
+]
 
 def main():
     print("=== Gmail OAuth Setup ===\n")
