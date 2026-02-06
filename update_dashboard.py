@@ -20,7 +20,7 @@ BETA_TAGS = ['ux_assets', 'ux_feedback', 'ux_login', 'ux_redirect']
 TARGET_GROUPS = ['Billing', 'CX Success', 'Distribution', 'ENG - Support']
 
 # Beta release date (when tracking started)
-BETA_RELEASE_DATE = '2026-01-28'
+BETA_RELEASE_DATE = '2026-01-21'
 
 # Cache for user and org lookups
 user_cache = {}
@@ -88,12 +88,10 @@ def get_group_ids():
 
 
 def get_week_range():
-    """Get this week's date range (Sunday to today)"""
+    """Get this week's date range (Monday to today)"""
     today = datetime.now()
-    days_since_sunday = today.weekday() + 1
-    if days_since_sunday == 7:
-        days_since_sunday = 0
-    start = today - timedelta(days=days_since_sunday)
+    days_since_monday = today.weekday()  # Monday = 0
+    start = today - timedelta(days=days_since_monday)
     start = start.replace(hour=0, minute=0, second=0, microsecond=0)
     return start.strftime('%Y-%m-%d'), today.strftime('%Y-%m-%d')
 
@@ -102,6 +100,31 @@ def get_alltime_range():
     """Get all-time range (beta release to today)"""
     today = datetime.now()
     return BETA_RELEASE_DATE, today.strftime('%Y-%m-%d')
+
+
+def get_weekly_ranges(num_weeks=8):
+    """Get date ranges for the last N weeks (Monday to Sunday)"""
+    today = datetime.now()
+    weeks = []
+
+    # Find the most recent Monday
+    days_since_monday = today.weekday()  # Monday = 0
+    current_monday = today - timedelta(days=days_since_monday)
+
+    for i in range(num_weeks):
+        week_start = current_monday - timedelta(weeks=i)
+        week_end = week_start + timedelta(days=6)  # Sunday
+        # Don't go past today
+        if week_end > today:
+            week_end = today
+        weeks.append({
+            'start': week_start.strftime('%Y-%m-%d'),
+            'end': week_end.strftime('%Y-%m-%d'),
+            'label': week_start.strftime('%b %d')
+        })
+
+    # Reverse so oldest is first (for chart)
+    return list(reversed(weeks))
 
 
 def fetch_tickets_for_range(start_date, end_date, group_ids):
@@ -175,6 +198,25 @@ def get_ticket_data():
     alltime_filtered, alltime_beta = fetch_tickets_for_range(alltime_start, alltime_end, group_ids)
     alltime_beta_details = enrich_tickets(alltime_beta)
 
+    # Historical weekly data for chart
+    print(f"\n--- WEEKLY HISTORY ---")
+    weekly_ranges = get_weekly_ranges(8)
+    weekly_data = []
+    for wr in weekly_ranges:
+        print(f"  Fetching {wr['label']}...")
+        filtered, beta = fetch_tickets_for_range(wr['start'], wr['end'], group_ids)
+        total = len(filtered)
+        beta_count = len(beta)
+        pct = round((beta_count / total * 100), 1) if total > 0 else 0
+        weekly_data.append({
+            'label': wr['label'],
+            'start': wr['start'],
+            'end': wr['end'],
+            'total': total,
+            'beta': beta_count,
+            'percentage': pct
+        })
+
     week_total = len(week_filtered)
     week_beta_count = len(week_beta)
     alltime_total = len(alltime_filtered)
@@ -197,6 +239,7 @@ def get_ticket_data():
             'end_date': alltime_end,
             'beta_tickets': alltime_beta_details
         },
+        'history': weekly_data,
         'updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')
     }
 
@@ -222,9 +265,16 @@ def generate_html(data):
     """Generate the dashboard HTML"""
     week = data['week']
     alltime = data['alltime']
+    history = data['history']
 
     week_rows = generate_ticket_rows(week['beta_tickets'])
     alltime_rows = generate_ticket_rows(alltime['beta_tickets'])
+
+    # Chart data
+    chart_labels = [w['label'] for w in history]
+    chart_beta = [w['beta'] for w in history]
+    chart_total = [w['total'] for w in history]
+    chart_pct = [w['percentage'] for w in history]
 
     html = f'''<!DOCTYPE html>
 <html lang="en">
@@ -232,6 +282,7 @@ def generate_html(data):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Support Pulse: Beta Tags</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{
@@ -476,7 +527,81 @@ def generate_html(data):
                 </table>''' if alltime['beta_tickets'] else '<div class="no-tickets">No beta-tagged tickets since release</div>'}
             </div>
         </div>
+
+        <!-- Weekly Trend Chart -->
+        <div class="dashboard">
+            <div class="section-label">Weekly Trend</div>
+            <h2>Last 8 Weeks</h2>
+            <div style="height: 300px; margin-top: 20px;">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
     </div>
+
+    <script>
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        new Chart(ctx, {{
+            type: 'bar',
+            data: {{
+                labels: {chart_labels},
+                datasets: [
+                    {{
+                        label: 'Beta Tagged',
+                        data: {chart_beta},
+                        backgroundColor: '#4a9aa8',
+                        borderRadius: 6,
+                        order: 2
+                    }},
+                    {{
+                        label: 'Total Tickets',
+                        data: {chart_total},
+                        backgroundColor: 'rgba(107, 197, 210, 0.3)',
+                        borderRadius: 6,
+                        order: 3
+                    }},
+                    {{
+                        label: 'Beta %',
+                        data: {chart_pct},
+                        type: 'line',
+                        borderColor: '#ffffff',
+                        backgroundColor: 'transparent',
+                        tension: 0.3,
+                        yAxisID: 'y1',
+                        order: 1
+                    }}
+                ]
+            }},
+            options: {{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {{
+                    legend: {{
+                        labels: {{ color: 'rgba(255,255,255,0.7)' }}
+                    }}
+                }},
+                scales: {{
+                    x: {{
+                        ticks: {{ color: 'rgba(255,255,255,0.6)' }},
+                        grid: {{ color: 'rgba(255,255,255,0.1)' }}
+                    }},
+                    y: {{
+                        position: 'left',
+                        ticks: {{ color: 'rgba(255,255,255,0.6)' }},
+                        grid: {{ color: 'rgba(255,255,255,0.1)' }},
+                        title: {{ display: true, text: 'Tickets', color: 'rgba(255,255,255,0.6)' }}
+                    }},
+                    y1: {{
+                        position: 'right',
+                        ticks: {{ color: 'rgba(255,255,255,0.6)' }},
+                        grid: {{ display: false }},
+                        title: {{ display: true, text: 'Beta %', color: 'rgba(255,255,255,0.6)' }},
+                        min: 0,
+                        max: 100
+                    }}
+                }}
+            }}
+        }});
+    </script>
 </body>
 </html>'''
     return html

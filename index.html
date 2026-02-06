@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Support Pulse: Beta Tags</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -167,7 +168,7 @@
         <div class="dashboard" style="text-align: center;">
             <img src="https://media.licdn.com/dms/image/v2/D560BAQF3gD_CaXzIBg/company-logo_200_200/B56ZVIqG4kHoAI-/0/1740680752906/visiting_media_logo?e=2147483647&v=beta&t=djoZIpPoPVhvn_sO_LBSXyjGT-Hn906UWsbIARtiiLU" alt="Visiting Media" style="width: 60px; height: 60px; border-radius: 12px; margin-bottom: 15px;">
             <h1>Support Pulse: Beta Tags</h1>
-            <div class="updated">Last updated: 2026-02-06 08:06:33 UTC</div>
+            <div class="updated">Last updated: 2026-02-06 08:09:35 UTC</div>
             <div class="links">
                 <a href="https://visitingmedia.zendesk.com/explore/studio#/dashboards" target="_blank">View in Zendesk Explore</a>
             </div>
@@ -176,7 +177,7 @@
         <!-- This Week -->
         <div class="dashboard">
             <div class="section-label">This Week</div>
-            <h2>2026-02-01 to 2026-02-06</h2>
+            <h2>2026-02-02 to 2026-02-06</h2>
 
             <div class="metrics">
                 <div class="metric beta">
@@ -203,23 +204,23 @@
         <!-- Since Beta Release -->
         <div class="dashboard alltime">
             <div class="section-label">Since Beta Release</div>
-            <h2>2026-01-28 to 2026-02-06</h2>
+            <h2>2026-01-21 to 2026-02-06</h2>
 
             <div class="metrics">
                 <div class="metric beta">
-                    <div class="metric-value">2</div>
+                    <div class="metric-value">5</div>
                     <div class="metric-label">Beta Tagged</div>
                 </div>
                 <div class="metric total">
-                    <div class="metric-value">51</div>
+                    <div class="metric-value">95</div>
                     <div class="metric-label">Total Tickets</div>
                 </div>
                 <div class="metric percentage">
-                    <div class="metric-value">3.9%</div>
+                    <div class="metric-value">5.3%</div>
                     <div class="metric-label">Beta %</div>
                 </div>
             </div>
-            <div class="formula">2 / 51 = 3.9%</div>
+            <div class="formula">5 / 95 = 5.3%</div>
 
             <div class="ticket-section">
                 <h3>All Tagged Tickets</h3>
@@ -247,10 +248,105 @@
                 <td>Stephanie Turner</td>
                 <td><span class="tag">ux_login</span></td>
                 <td>2026-01-28</td>
+            </tr>
+            <tr>
+                <td><a href="https://visitingmedia.zendesk.com/agent/tickets/10445" target="_blank">Accessing my account in SalesHub</a></td>
+                <td>Hilton Minneapolis</td>
+                <td>Michael Rudy</td>
+                <td><span class="tag">ux_login</span></td>
+                <td>2026-01-26</td>
+            </tr>
+            <tr>
+                <td><a href="https://visitingmedia.zendesk.com/agent/tickets/10421" target="_blank">Re: Visiting Media: Checking In - Kimpton Rowan Pa...</a></td>
+                <td>Kimpton Rowan Palm Springs Hotel</td>
+                <td>Broyles, Benjamin</td>
+                <td><span class="tag">ux_feedback</span></td>
+                <td>2026-01-22</td>
+            </tr>
+            <tr>
+                <td><a href="https://visitingmedia.zendesk.com/agent/tickets/10412" target="_blank">Visiting Media 360 Tours_feedback and support</a></td>
+                <td>InterContinental Buckhead Atlanta</td>
+                <td>Kyra Oliver</td>
+                <td><span class="tag">ux_redirect</span></td>
+                <td>2026-01-22</td>
             </tr></tbody>
                 </table>
             </div>
         </div>
+
+        <!-- Weekly Trend Chart -->
+        <div class="dashboard">
+            <div class="section-label">Weekly Trend</div>
+            <h2>Last 8 Weeks</h2>
+            <div style="height: 300px; margin-top: 20px;">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
     </div>
+
+    <script>
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Dec 15', 'Dec 22', 'Dec 29', 'Jan 05', 'Jan 12', 'Jan 19', 'Jan 26', 'Feb 02'],
+                datasets: [
+                    {
+                        label: 'Beta Tagged',
+                        data: [0, 0, 0, 0, 0, 2, 3, 0],
+                        backgroundColor: '#4a9aa8',
+                        borderRadius: 6,
+                        order: 2
+                    },
+                    {
+                        label: 'Total Tickets',
+                        data: [50, 8, 10, 27, 40, 41, 44, 27],
+                        backgroundColor: 'rgba(107, 197, 210, 0.3)',
+                        borderRadius: 6,
+                        order: 3
+                    },
+                    {
+                        label: 'Beta %',
+                        data: [0.0, 0.0, 0.0, 0.0, 0.0, 4.9, 6.8, 0.0],
+                        type: 'line',
+                        borderColor: '#ffffff',
+                        backgroundColor: 'transparent',
+                        tension: 0.3,
+                        yAxisID: 'y1',
+                        order: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: 'rgba(255,255,255,0.7)' }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: 'rgba(255,255,255,0.6)' },
+                        grid: { color: 'rgba(255,255,255,0.1)' }
+                    },
+                    y: {
+                        position: 'left',
+                        ticks: { color: 'rgba(255,255,255,0.6)' },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        title: { display: true, text: 'Tickets', color: 'rgba(255,255,255,0.6)' }
+                    },
+                    y1: {
+                        position: 'right',
+                        ticks: { color: 'rgba(255,255,255,0.6)' },
+                        grid: { display: false },
+                        title: { display: true, text: 'Beta %', color: 'rgba(255,255,255,0.6)' },
+                        min: 0,
+                        max: 100
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>
