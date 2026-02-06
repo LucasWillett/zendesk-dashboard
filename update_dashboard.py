@@ -448,7 +448,7 @@ def generate_html(data):
             <h1>Support Pulse: Beta Tags</h1>
             <div class="updated">Last updated: {data['updated']}</div>
             <div class="links">
-                <a href="https://visitingmedia.zendesk.com/explore/studio#/dashboards" target="_blank">View in Zendesk Explore</a>
+                <a href="https://visitingmedia.zendesk.com/explore/studio#/dashboards/precanned/9425F76AF99EC760E6FDE83C5A99EE472407CBD6B0D5A3DA700AB5DDE040C541" target="_blank">View in Zendesk Explore</a>
             </div>
         </div>
 
