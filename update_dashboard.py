@@ -318,6 +318,36 @@ def generate_html(data):
     chart_total = json.dumps([w['total'] for w in history])
     chart_pct = json.dumps([w['percentage'] for w in history])
 
+    # Pre-compute conditional HTML sections to avoid f-string nesting issues
+    if week['beta_tickets']:
+        week_table_html = f'''<table class="ticket-table">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Account</th>
+                            <th>Requester</th>
+                            <th>Tags</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>{week_rows}</tbody>
+                </table>'''
+    else:
+        week_table_html = '<div class="no-tickets">No beta-tagged tickets this week</div>'
+
+    if alltime['beta_tickets']:
+        tag_summary_html = f'''<table class="ticket-table" style="max-width: 300px;">
+                    <thead>
+                        <tr>
+                            <th>Tag</th>
+                            <th style="text-align: center;">Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>{tag_summary_rows}</tbody>
+                </table>'''
+    else:
+        tag_summary_html = '<div class="no-tickets">No beta-tagged tickets yet</div>'
+
     html = f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -512,18 +542,7 @@ def generate_html(data):
             
             <div class="ticket-section">
                 <h3>Tagged Tickets</h3>
-                {f'''<table class="ticket-table">
-                    <thead>
-                        <tr>
-                            <th>Subject</th>
-                            <th>Account</th>
-                            <th>Requester</th>
-                            <th>Tags</th>
-                            <th>Created</th>
-                        </tr>
-                    </thead>
-                    <tbody>{week_rows}</tbody>
-                </table>''' if week['beta_tickets'] else '<div class="no-tickets">No beta-tagged tickets this week</div>'}
+                {week_table_html}
             </div>
         </div>
 
@@ -557,15 +576,7 @@ def generate_html(data):
                 <p style="color: rgba(255,255,255,0.6); margin-bottom: 15px;">
                     {alltime['beta']} beta-tagged tickets ({alltime['percentage']}% of support volume)
                 </p>
-                {f'''<table class="ticket-table" style="max-width: 300px;">
-                    <thead>
-                        <tr>
-                            <th>Tag</th>
-                            <th style="text-align: center;">Count</th>
-                        </tr>
-                    </thead>
-                    <tbody>{tag_summary_rows}</tbody>
-                </table>''' if alltime['beta_tickets'] else '<div class="no-tickets">No beta-tagged tickets yet</div>'}
+                {tag_summary_html}
             </div>
         </div>
     </div>
