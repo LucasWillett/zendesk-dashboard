@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beta Ticket Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .dashboard {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: rgba(255,255,255,0.6);
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .metric {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px 15px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .metric-label {
+            color: rgba(255,255,255,0.7);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .beta .metric-value { color: #4285f4; }
+        .total .metric-value { color: #34a853; }
+        .percentage .metric-value { color: #ea4335; }
+        .formula {
+            text-align: center;
+            color: rgba(255,255,255,0.5);
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .updated {
+            text-align: center;
+            color: rgba(255,255,255,0.4);
+            font-size: 12px;
+        }
+        .links {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .links a {
+            color: #4285f4;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 14px;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>Beta Ticket Dashboard</h1>
+        <div class="subtitle">Week: 2026-02-01 to 2026-02-06</div>
+
+        <div class="metrics">
+            <div class="metric beta">
+                <div class="metric-value">0</div>
+                <div class="metric-label">Beta Tagged</div>
+            </div>
+            <div class="metric total">
+                <div class="metric-value">42</div>
+                <div class="metric-label">Total Tickets</div>
+            </div>
+            <div class="metric percentage">
+                <div class="metric-value">0.0%</div>
+                <div class="metric-label">Beta %</div>
+            </div>
+        </div>
+
+        <div class="formula">0 / 42 = 0.0%</div>
+        <div class="updated">Last updated: 2026-02-06 07:15:17 UTC</div>
+
+        <div class="links">
+            <a href="https://visitingmedia.zendesk.com/explore/studio#/dashboards" target="_blank">View in Zendesk Explore</a>
+        </div>
+    </div>
+</body>
+</html>
