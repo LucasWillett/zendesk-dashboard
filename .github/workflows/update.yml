@@ -56,7 +56,7 @@ jobs:
         run: python send_weekly_summary.py
 
       - name: Send Test Summary (to support-internal only)
-        if: github.event.inputs.send_test_summary == 'true'
+        if: ${{ inputs.send_test_summary }}
         env:
           ZENDESK_SUBDOMAIN: ${{ secrets.ZENDESK_SUBDOMAIN }}
           ZENDESK_EMAIL: ${{ secrets.ZENDESK_EMAIL }}
