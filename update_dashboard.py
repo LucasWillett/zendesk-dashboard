@@ -16,6 +16,9 @@ ZENDESK_TOKEN = os.environ.get('ZENDESK_TOKEN', '')
 # Beta tags to track
 BETA_TAGS = ['ux_assets', 'ux_feedback', 'ux_login', 'ux_redirect']
 
+# Groups to include (will be resolved to IDs)
+TARGET_GROUPS = ['Billing', 'CX Success', 'Distribution', 'ENG - Support']
+
 
 def zendesk_request(endpoint):
     """Make authenticated request to Zendesk API"""
@@ -29,6 +32,20 @@ def zendesk_request(endpoint):
     except Exception as e:
         print(f"API Error: {e}")
         return {'count': 0, 'error': str(e)}
+
+
+def get_group_ids():
+    """Get IDs for the target groups"""
+    result = zendesk_request('groups.json')
+    groups = result.get('groups', [])
+
+    group_ids = []
+    for group in groups:
+        if group['name'] in TARGET_GROUPS:
+            group_ids.append(str(group['id']))
+            print(f"  Found group: {group['name']} = {group['id']}")
+
+    return group_ids
 
 
 def get_week_range():
@@ -46,16 +63,42 @@ def get_ticket_counts():
     """Get total and beta-tagged ticket counts for this week"""
     start_date, end_date = get_week_range()
 
-    # Total tickets this week
-    total_query = f"type:ticket created>={start_date} created<={end_date}"
-    total_result = zendesk_request(f"search.json?query={requests.utils.quote(total_query)}")
-    total = total_result.get('count', 0)
+    # Get group IDs for filtering
+    print("Fetching group IDs...")
+    group_ids = set(get_group_ids())
+    print(f"Target group IDs: {group_ids}")
 
-    # Beta-tagged tickets this week
-    beta_tags_query = ' OR '.join([f'tags:{tag}' for tag in BETA_TAGS])
-    beta_query = f"type:ticket created>={start_date} created<={end_date} ({beta_tags_query})"
-    beta_result = zendesk_request(f"search.json?query={requests.utils.quote(beta_query)}")
-    beta = beta_result.get('count', 0)
+    # Fetch all tickets this week
+    total_query = f"type:ticket created>={start_date} created<={end_date}"
+    print(f"Fetching tickets: {total_query}")
+
+    all_tickets = []
+    page = 1
+    while True:
+        result = zendesk_request(f"search.json?query={requests.utils.quote(total_query)}&per_page=100&page={page}")
+        tickets = result.get('results', [])
+        if not tickets:
+            break
+        all_tickets.extend(tickets)
+        if len(tickets) < 100:
+            break
+        page += 1
+
+    print(f"Total tickets fetched: {len(all_tickets)}")
+
+    # Filter by target groups
+    if group_ids:
+        filtered_tickets = [t for t in all_tickets if str(t.get('group_id', '')) in group_ids]
+    else:
+        filtered_tickets = all_tickets
+
+    print(f"Tickets in target groups: {len(filtered_tickets)}")
+
+    # Count beta-tagged tickets
+    beta_tickets = [t for t in filtered_tickets if any(tag in t.get('tags', []) for tag in BETA_TAGS)]
+
+    total = len(filtered_tickets)
+    beta = len(beta_tickets)
 
     return {
         'total': total,
