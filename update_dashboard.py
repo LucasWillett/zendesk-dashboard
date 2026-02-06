@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Zendesk Beta Ticket Dashboard Generator
+Zendesk Support Pulse: Beta Tags Generator
 Queries Zendesk API and generates a static HTML dashboard
 """
 import os
@@ -178,7 +178,7 @@ def generate_html(data):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beta Ticket Dashboard</title>
+    <title>Support Pulse: Beta Tags</title>
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{
@@ -318,7 +318,7 @@ def generate_html(data):
 <body>
     <div class="container">
         <div class="dashboard">
-            <h1>Beta Ticket Dashboard</h1>
+            <h1>Support Pulse: Beta Tags</h1>
             <div class="subtitle">Week: {data['start_date']} to {data['end_date']}</div>
 
             <div class="metrics">
@@ -345,7 +345,7 @@ def generate_html(data):
         </div>
 
         <div class="dashboard">
-            <h2>Beta Tagged Tickets This Week</h2>
+            <h2>Tagged Tickets This Week</h2>
             {f'''<table class="ticket-table">
                 <thead>
                     <tr>
