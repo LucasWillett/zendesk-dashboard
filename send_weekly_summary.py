@@ -17,7 +17,16 @@ SCOPES = [
 ]
 
 DASHBOARD_URL = "https://lucaswillett.github.io/zendesk-dashboard/"
-RECIPIENT_EMAIL = "lucas@visitingmedia.com"
+
+# Recipients - Slack channels via email integration + direct email
+RECIPIENT_EMAILS = [
+    "gtm-weekly-aaaapge7b6q4al6kkvmraq7qd4@visiting-media.slack.com",  # #gtm-weekly
+    "support-internal-aaaak23zhhincvkilre7nnm2ty@visiting-media.slack.com",  # #support-internal
+    "lucas@visitingmedia.com",  # Direct email
+]
+
+# For testing only
+TEST_RECIPIENT = "support-internal-aaaak23zhhincvkilre7nnm2ty@visiting-media.slack.com"
 
 
 def get_gmail_service():
@@ -147,7 +156,7 @@ def send_email(service, to_email, subject, html_content, plain_content):
         return False
 
 
-def main():
+def main(test_mode=False):
     """Generate and send the weekly summary email"""
     print("=== Weekly Beta Summary Email ===\n")
 
@@ -189,13 +198,27 @@ def main():
         week_beta, week_pct, alltime_beta, alltime_pct, tags_summary
     )
 
-    # Send email
-    print(f"Sending to {RECIPIENT_EMAIL}...")
-    success = send_email(service, RECIPIENT_EMAIL, subject, html_content, plain_content)
+    # Determine recipients
+    if test_mode:
+        recipients = [TEST_RECIPIENT]
+        print(f"TEST MODE - sending only to: {TEST_RECIPIENT}")
+    else:
+        recipients = RECIPIENT_EMAILS
+        print(f"Sending to {len(recipients)} recipients...")
 
-    return success
+    # Send to all recipients
+    all_success = True
+    for recipient in recipients:
+        print(f"  Sending to {recipient}...")
+        success = send_email(service, recipient, subject, html_content, plain_content)
+        if not success:
+            all_success = False
+
+    return all_success
 
 
 if __name__ == '__main__':
-    success = main()
+    import sys
+    test_mode = '--test' in sys.argv
+    success = main(test_mode=test_mode)
     exit(0 if success else 1)
