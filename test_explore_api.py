@@ -58,19 +58,69 @@ def check_export_status(export_id):
 
 def test_guide_analytics():
     """Test Help Center/Guide analytics API"""
-    # Try the Help Center analytics endpoint
-    url = f"https://{ZENDESK_SUBDOMAIN}.zendesk.com/api/v2/help_center/articles.json"
     auth = (f"{ZENDESK_EMAIL}/token", ZENDESK_TOKEN)
 
+    # Test 1: List articles
     print("\n--- Testing Help Center Articles API ---")
+    url = f"https://{ZENDESK_SUBDOMAIN}.zendesk.com/api/v2/help_center/articles.json"
     try:
         response = requests.get(url, auth=auth, timeout=30)
         print(f"Status: {response.status_code}")
         if response.status_code == 200:
             data = response.json()
-            print(f"Found {len(data.get('articles', []))} articles")
-        else:
-            print(f"Response: {response.text[:300]}")
+            articles = data.get('articles', [])
+            print(f"Found {len(articles)} articles")
+            if articles:
+                # Show first article details
+                art = articles[0]
+                print(f"Sample article: {art.get('title', 'N/A')[:50]}")
+                print(f"  ID: {art.get('id')}")
+                print(f"  Section ID: {art.get('section_id')}")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    # Test 2: Try Help Center stats endpoint
+    print("\n--- Testing Help Center Stats API ---")
+    stats_endpoints = [
+        "help_center/stats.json",
+        "help_center/articles/stats.json",
+        "guide/stats.json",
+    ]
+    for endpoint in stats_endpoints:
+        url = f"https://{ZENDESK_SUBDOMAIN}.zendesk.com/api/v2/{endpoint}"
+        try:
+            response = requests.get(url, auth=auth, timeout=10)
+            print(f"{endpoint}: {response.status_code}")
+            if response.status_code == 200:
+                print(f"  Response: {response.text[:200]}")
+        except Exception as e:
+            print(f"{endpoint}: Error - {e}")
+
+    # Test 3: List brands (to find beta help center brand ID)
+    print("\n--- Testing Brands API ---")
+    url = f"https://{ZENDESK_SUBDOMAIN}.zendesk.com/api/v2/brands.json"
+    try:
+        response = requests.get(url, auth=auth, timeout=30)
+        print(f"Status: {response.status_code}")
+        if response.status_code == 200:
+            data = response.json()
+            brands = data.get('brands', [])
+            print(f"Found {len(brands)} brands:")
+            for brand in brands:
+                print(f"  - {brand.get('name')}: ID={brand.get('id')}, subdomain={brand.get('subdomain')}")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    # Test 4: List sections (categories of articles)
+    print("\n--- Testing Help Center Sections API ---")
+    url = f"https://{ZENDESK_SUBDOMAIN}.zendesk.com/api/v2/help_center/sections.json"
+    try:
+        response = requests.get(url, auth=auth, timeout=30)
+        print(f"Status: {response.status_code}")
+        if response.status_code == 200:
+            data = response.json()
+            sections = data.get('sections', [])
+            print(f"Found {len(sections)} sections")
     except Exception as e:
         print(f"Error: {e}")
 
