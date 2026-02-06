@@ -89,31 +89,26 @@ def create_summary_email(week_beta, week_pct, alltime_beta, alltime_pct, tags_su
         </div>
 
         <div style="padding: 30px 0;">
-            <p style="font-size: 16px; color: #333; margin-bottom: 20px;">{status}</p>
+            <p style="font-size: 16px; color: #333; margin-bottom: 25px;">{status}</p>
 
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                <tr>
-                    <td style="padding: 15px; background: #f5f5f5; border-radius: 8px; text-align: center; width: 50%;">
-                        <div style="font-size: 32px; font-weight: bold; color: #4a9aa8;">{week_beta}</div>
-                        <div style="font-size: 12px; color: #666; text-transform: uppercase;">This Week</div>
-                    </td>
-                    <td style="width: 20px;"></td>
-                    <td style="padding: 15px; background: #f5f5f5; border-radius: 8px; text-align: center; width: 50%;">
-                        <div style="font-size: 32px; font-weight: bold; color: #1a2332;">{week_pct}%</div>
-                        <div style="font-size: 12px; color: #666; text-transform: uppercase;">Beta %</div>
-                    </td>
-                </tr>
-            </table>
+            <div style="background: #f5f5f5; border-radius: 8px; padding: 20px; margin-bottom: 15px;">
+                <div style="font-size: 14px; color: #666; margin-bottom: 5px;">This Week</div>
+                <div style="font-size: 24px; font-weight: bold; color: #4a9aa8;">{week_beta} beta-tagged ({week_pct}%)</div>
+            </div>
 
-            <p style="font-size: 14px; color: #666; margin-bottom: 10px;"><strong>Tags this week:</strong> {tags_line}</p>
-            <p style="font-size: 14px; color: #666;"><strong>Since launch:</strong> {alltime_beta} total ({alltime_pct}% of support volume)</p>
+            <div style="background: #f5f5f5; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                <div style="font-size: 14px; color: #666; margin-bottom: 5px;">Since Launch (Jan 21)</div>
+                <div style="font-size: 24px; font-weight: bold; color: #1a2332;">{alltime_beta} beta-tagged ({alltime_pct}%)</div>
+            </div>
+
+            <p style="font-size: 14px; color: #666;"><strong>Tags this week:</strong> {tags_line}</p>
         </div>
 
         <div style="border-top: 1px solid #eee; padding-top: 20px;">
             <a href="{DASHBOARD_URL}" style="display: inline-block; background: #4a9aa8; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 500;">View Full Dashboard →</a>
         </div>
 
-        <p style="font-size: 12px; color: #999; margin-top: 30px;">This summary is automatically generated every Friday.</p>
+        <p style="font-size: 12px; color: #999; margin-top: 30px;">This summary is automatically generated every Monday.</p>
     </div>
     """
 
@@ -123,9 +118,10 @@ Support Pulse Weekly
 
 {status}
 
-This Week: {week_beta} beta-tagged tickets ({week_pct}%)
-Tags: {tags_line}
-Since Launch: {alltime_beta} total ({alltime_pct}%)
+This Week: {week_beta} beta-tagged ({week_pct}%)
+Since Launch (Jan 21): {alltime_beta} beta-tagged ({alltime_pct}%)
+
+Tags this week: {tags_line}
 
 View Dashboard: {DASHBOARD_URL}
 """

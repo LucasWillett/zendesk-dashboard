@@ -5,7 +5,13 @@ on:
     - cron: '0 11 * * *'  # Daily at 6am EST (11am UTC)
     - cron: '*/15 * * * *'  # Every 15 minutes for ticket data
     - cron: '0 14 * * 1'  # Mondays at 9am EST (14:00 UTC) - weekly summary email
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      send_test_summary:
+        description: 'Send test summary to #support-internal'
+        required: false
+        type: boolean
+        default: false
   push:
     branches: [main]
 
@@ -48,6 +54,17 @@ jobs:
           GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
           GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
         run: python send_weekly_summary.py
+
+      - name: Send Test Summary (to support-internal only)
+        if: github.event.inputs.send_test_summary == 'true'
+        env:
+          ZENDESK_SUBDOMAIN: ${{ secrets.ZENDESK_SUBDOMAIN }}
+          ZENDESK_EMAIL: ${{ secrets.ZENDESK_EMAIL }}
+          ZENDESK_TOKEN: ${{ secrets.ZENDESK_TOKEN }}
+          GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
+          GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
+          GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+        run: python send_weekly_summary.py --test
 
       - name: Commit and Push
         run: |
