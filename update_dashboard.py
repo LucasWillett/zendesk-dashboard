@@ -471,8 +471,7 @@ def generate_html(data):
                     <div class="metric-label">Beta %</div>
                 </div>
             </div>
-            <div class="formula">{week['beta']} / {week['total']} = {week['percentage']}%</div>
-
+            
             <div class="ticket-section">
                 <h3>Tagged Tickets</h3>
                 {f'''<table class="ticket-table">
@@ -509,8 +508,7 @@ def generate_html(data):
                     <div class="metric-label">Beta %</div>
                 </div>
             </div>
-            <div class="formula">{alltime['beta']} / {alltime['total']} = {alltime['percentage']}%</div>
-
+            
             <div class="ticket-section">
                 <h3>All Tagged Tickets</h3>
                 {f'''<table class="ticket-table">
