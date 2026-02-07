@@ -67,19 +67,8 @@ def get_week_dates():
     return last_monday.strftime('%b %d'), last_sunday.strftime('%b %d, %Y')
 
 
-def get_product_area(tag):
-    """Map beta tags to Instant Insights product areas"""
-    mapping = {
-        'ux_assets': 'Asset Library',
-        'ux_login': 'Sign in / Sign up',
-        'ux_redirect': 'Public Viewer',
-        'ux_feedback': 'UI/UX',
-    }
-    return mapping.get(tag, 'Other')
-
-
 def create_feedback_digest(tickets):
-    """Create ready-to-submit feedback entries for each ticket"""
+    """Create ready-to-paste transcripts for Instant Insights conversation analysis"""
     if not tickets:
         return '', ''
 
@@ -92,52 +81,48 @@ def create_feedback_digest(tickets):
         requester = ticket.get('requester', 'Unknown')
         ticket_url = ticket.get('url', '')
         tags = ticket.get('beta_tags', [])
-        product_area = get_product_area(tags[0]) if tags else 'Other'
+        created = ticket.get('created', '')
 
-        # Create a summary (max 120 chars)
-        summary = subject[:117] + '...' if len(subject) > 120 else subject
+        # Format as a transcript the tool can parse
+        transcript = f"""Support Ticket from {account}
+Customer: {requester}
+Date: {created}
+Tags: {', '.join(tags)}
+
+Subject: {subject}
+
+Reference: {ticket_url}"""
 
         html_entry = f'''
-        <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
-            <div style="font-weight: bold; color: #856404; margin-bottom: 10px;">📋 Feedback #{i}</div>
-            <div style="font-size: 13px; color: #333; margin-bottom: 8px;">
-                <strong>Full feedback:</strong> {subject}
-            </div>
-            <div style="font-size: 13px; color: #333; margin-bottom: 8px;">
-                <strong>Summary:</strong> {summary}
-            </div>
-            <div style="font-size: 13px; color: #333; margin-bottom: 8px;">
-                <strong>Reference link:</strong> <a href="{ticket_url}">{ticket_url}</a>
-            </div>
-            <div style="font-size: 13px; color: #333; margin-bottom: 8px;">
-                <strong>Received from:</strong> {account} ({requester})
-            </div>
-            <div style="font-size: 13px; color: #333; margin-bottom: 8px;">
-                <strong>Product area:</strong> {product_area}
-            </div>
-            <div style="font-size: 13px; color: #333;">
-                <strong>Tags:</strong> {', '.join(tags)}
+        <div style="background: #e8f4f8; border: 1px solid #4a9aa8; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+            <div style="font-weight: bold; color: #2c5f6e; margin-bottom: 10px;">🎫 Ticket #{i} - {account}</div>
+            <div style="font-size: 12px; color: #666; margin-bottom: 10px;">Copy transcript below → paste into Instant Insights</div>
+            <pre style="background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 12px; font-size: 12px; white-space: pre-wrap; margin: 0;">{transcript}</pre>
+            <div style="margin-top: 10px; font-size: 12px;">
+                <strong>Customer/Prospect:</strong> {account}
             </div>
         </div>
         '''
         html_entries.append(html_entry)
 
         plain_entry = f'''
---- Feedback #{i} ---
-Full feedback: {subject}
-Summary: {summary}
-Reference link: {ticket_url}
-Received from: {account} ({requester})
-Product area: {product_area}
-Tags: {', '.join(tags)}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎫 TICKET #{i} - {account}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TRANSCRIPT (copy this):
+
+{transcript}
+
+Customer/Prospect field: {account}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 '''
         plain_entries.append(plain_entry)
 
     html_section = f'''
-    <div style="border-top: 2px solid #ffc107; margin-top: 30px; padding-top: 20px;">
-        <h3 style="color: #856404; margin-bottom: 15px;">📝 Ready to Submit to Product</h3>
+    <div style="border-top: 2px solid #4a9aa8; margin-top: 30px; padding-top: 20px;">
+        <h3 style="color: #2c5f6e; margin-bottom: 15px;">📝 Ready for Instant Insights</h3>
         <p style="font-size: 13px; color: #666; margin-bottom: 15px;">
-            Copy each entry below into <a href="https://instant-insights.app/feedback/submit">Instant Insights</a>
+            Paste each transcript into <a href="https://instant-insights.app/conversations">Conversation Analysis</a> → Select Team: Support
         </p>
         {''.join(html_entries)}
     </div>
@@ -146,9 +131,10 @@ Tags: {', '.join(tags)}
     plain_section = f'''
 
 ========================================
-📝 READY TO SUBMIT TO PRODUCT
+📝 READY FOR INSTANT INSIGHTS
 ========================================
-Copy each entry into: https://instant-insights.app/feedback/submit
+Paste each transcript into: https://instant-insights.app/conversations
+Select Team: Support
 
 {''.join(plain_entries)}
 '''
