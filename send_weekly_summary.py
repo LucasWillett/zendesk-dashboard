@@ -63,7 +63,96 @@ def get_week_dates():
     return last_monday.strftime('%b %d'), last_sunday.strftime('%b %d, %Y')
 
 
-def create_summary_email(week_beta, week_pct, alltime_beta, alltime_pct, tags_summary):
+def get_product_area(tag):
+    """Map beta tags to Instant Insights product areas"""
+    mapping = {
+        'ux_assets': 'Asset Library',
+        'ux_login': 'Sign in / Sign up',
+        'ux_redirect': 'Public Viewer',
+        'ux_feedback': 'UI/UX',
+    }
+    return mapping.get(tag, 'Other')
+
+
+def create_feedback_digest(tickets):
+    """Create ready-to-submit feedback entries for each ticket"""
+    if not tickets:
+        return '', ''
+
+    html_entries = []
+    plain_entries = []
+
+    for i, ticket in enumerate(tickets, 1):
+        subject = ticket.get('subject', 'No subject')
+        account = ticket.get('account', 'Unknown')
+        requester = ticket.get('requester', 'Unknown')
+        ticket_url = ticket.get('url', '')
+        tags = ticket.get('beta_tags', [])
+        product_area = get_product_area(tags[0]) if tags else 'Other'
+
+        # Create a summary (max 120 chars)
+        summary = subject[:117] + '...' if len(subject) > 120 else subject
+
+        html_entry = f'''
+        <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+            <div style="font-weight: bold; color: #856404; margin-bottom: 10px;">📋 Feedback #{i}</div>
+            <div style="font-size: 13px; color: #333; margin-bottom: 8px;">
+                <strong>Full feedback:</strong> {subject}
+            </div>
+            <div style="font-size: 13px; color: #333; margin-bottom: 8px;">
+                <strong>Summary:</strong> {summary}
+            </div>
+            <div style="font-size: 13px; color: #333; margin-bottom: 8px;">
+                <strong>Reference link:</strong> <a href="{ticket_url}">{ticket_url}</a>
+            </div>
+            <div style="font-size: 13px; color: #333; margin-bottom: 8px;">
+                <strong>Received from:</strong> {account} ({requester})
+            </div>
+            <div style="font-size: 13px; color: #333; margin-bottom: 8px;">
+                <strong>Product area:</strong> {product_area}
+            </div>
+            <div style="font-size: 13px; color: #333;">
+                <strong>Tags:</strong> {', '.join(tags)}
+            </div>
+        </div>
+        '''
+        html_entries.append(html_entry)
+
+        plain_entry = f'''
+--- Feedback #{i} ---
+Full feedback: {subject}
+Summary: {summary}
+Reference link: {ticket_url}
+Received from: {account} ({requester})
+Product area: {product_area}
+Tags: {', '.join(tags)}
+'''
+        plain_entries.append(plain_entry)
+
+    html_section = f'''
+    <div style="border-top: 2px solid #ffc107; margin-top: 30px; padding-top: 20px;">
+        <h3 style="color: #856404; margin-bottom: 15px;">📝 Ready to Submit to Product</h3>
+        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">
+            Copy each entry below into <a href="https://instant-insights.app/feedback/submit">Instant Insights</a>
+        </p>
+        {''.join(html_entries)}
+    </div>
+    '''
+
+    plain_section = f'''
+
+========================================
+📝 READY TO SUBMIT TO PRODUCT
+========================================
+Copy each entry into: https://instant-insights.app/feedback/submit
+
+{''.join(plain_entries)}
+'''
+
+    return html_section, plain_section
+
+
+def create_summary_email(week_beta, week_pct, alltime_beta, alltime_pct, tags_summary, week_tickets=None):
     """Create the summary email content"""
     week_start, week_end = get_week_dates()
 
@@ -72,6 +161,9 @@ def create_summary_email(week_beta, week_pct, alltime_beta, alltime_pct, tags_su
         tags_line = ", ".join([f"{count} {tag}" for tag, count in tags_summary.items()])
     else:
         tags_line = "No new beta tags this week"
+
+    # Generate feedback digest
+    feedback_html, feedback_plain = create_feedback_digest(week_tickets or [])
 
     # Determine status message
     if week_beta == 0:
@@ -104,6 +196,8 @@ def create_summary_email(week_beta, week_pct, alltime_beta, alltime_pct, tags_su
             <p style="font-size: 14px; color: #666;"><strong>Tags this week:</strong> {tags_line}</p>
         </div>
 
+        {feedback_html}
+
         <div style="border-top: 1px solid #eee; padding-top: 20px;">
             <a href="{DASHBOARD_URL}" style="display: inline-block; background: #4a9aa8; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 500;">View Full Dashboard →</a>
         </div>
@@ -122,7 +216,7 @@ This Week: {week_beta} beta-tagged ({week_pct}%)
 Since Launch (Jan 21): {alltime_beta} beta-tagged ({alltime_pct}%)
 
 Tags this week: {tags_line}
-
+{feedback_plain}
 View Dashboard: {DASHBOARD_URL}
 """
 
@@ -191,11 +285,14 @@ def main(test_mode=False):
         for tag in ticket.get('beta_tags', []):
             tags_summary[tag] = tags_summary.get(tag, 0) + 1
 
+    # Get this week's tickets for feedback digest
+    week_tickets = data['week'].get('beta_tickets', [])
+
     # Create email content
     week_start, week_end = get_week_dates()
     subject = f"Support Pulse Weekly: {week_start} - {week_end}"
     html_content, plain_content = create_summary_email(
-        week_beta, week_pct, alltime_beta, alltime_pct, tags_summary
+        week_beta, week_pct, alltime_beta, alltime_pct, tags_summary, week_tickets
     )
 
     # Determine recipients
