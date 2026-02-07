@@ -18,11 +18,15 @@ SCOPES = [
 
 DASHBOARD_URL = "https://lucaswillett.github.io/zendesk-dashboard/"
 
-# Recipients - Slack channels via email integration + direct email
-RECIPIENT_EMAILS = [
+# Recipients - summary only (no feedback digest)
+SUMMARY_RECIPIENTS = [
     "gtm-weekly-aaaapge7b6q4al6kkvmraq7qd4@visiting-media.slack.com",  # #gtm-weekly
-    "support-internal-aaaak23zhhincvkilre7nnm2ty@visiting-media.slack.com",  # #support-internal
     "lucas@visitingmedia.com",  # Direct email
+]
+
+# Recipients - summary + feedback digest
+FULL_RECIPIENTS = [
+    "support-internal-aaaak23zhhincvkilre7nnm2ty@visiting-media.slack.com",  # #support-internal
 ]
 
 # For testing only
@@ -291,23 +295,38 @@ def main(test_mode=False):
     # Create email content
     week_start, week_end = get_week_dates()
     subject = f"Support Pulse Weekly: {week_start} - {week_end}"
-    html_content, plain_content = create_summary_email(
+
+    # Summary only (for GTM + email)
+    summary_html, summary_plain = create_summary_email(
+        week_beta, week_pct, alltime_beta, alltime_pct, tags_summary, week_tickets=None
+    )
+
+    # Full content with feedback digest (for support-internal)
+    full_html, full_plain = create_summary_email(
         week_beta, week_pct, alltime_beta, alltime_pct, tags_summary, week_tickets
     )
 
-    # Determine recipients
-    if test_mode:
-        recipients = [TEST_RECIPIENT]
-        print(f"TEST MODE - sending only to: {TEST_RECIPIENT}")
-    else:
-        recipients = RECIPIENT_EMAILS
-        print(f"Sending to {len(recipients)} recipients...")
-
-    # Send to all recipients
     all_success = True
-    for recipient in recipients:
+
+    # Test mode - send full content to test recipient
+    if test_mode:
+        print(f"TEST MODE - sending full content to: {TEST_RECIPIENT}")
+        success = send_email(service, TEST_RECIPIENT, subject, full_html, full_plain)
+        return success
+
+    # Send summary to GTM + email
+    print(f"Sending summary to {len(SUMMARY_RECIPIENTS)} recipients...")
+    for recipient in SUMMARY_RECIPIENTS:
         print(f"  Sending to {recipient}...")
-        success = send_email(service, recipient, subject, html_content, plain_content)
+        success = send_email(service, recipient, subject, summary_html, summary_plain)
+        if not success:
+            all_success = False
+
+    # Send full content (with feedback digest) to support-internal
+    print(f"Sending full content to {len(FULL_RECIPIENTS)} recipients...")
+    for recipient in FULL_RECIPIENTS:
+        print(f"  Sending to {recipient}...")
+        success = send_email(service, recipient, subject, full_html, full_plain)
         if not success:
             all_success = False
 
