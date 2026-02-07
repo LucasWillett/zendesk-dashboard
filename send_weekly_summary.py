@@ -21,12 +21,12 @@ DASHBOARD_URL = "https://lucaswillett.github.io/zendesk-dashboard/"
 # Recipients - summary only (no feedback digest)
 SUMMARY_RECIPIENTS = [
     "gtm-weekly-aaaapge7b6q4al6kkvmraq7qd4@visiting-media.slack.com",  # #gtm-weekly
-    "lucas@visitingmedia.com",  # Direct email
 ]
 
 # Recipients - summary + feedback digest
 FULL_RECIPIENTS = [
     "support-internal-aaaak23zhhincvkilre7nnm2ty@visiting-media.slack.com",  # #support-internal
+    "lucas@visitingmedia.com",  # Direct email
 ]
 
 # For testing only
