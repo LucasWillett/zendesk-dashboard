@@ -13,6 +13,11 @@ on:
         required: false
         type: boolean
         default: false
+      send_preview:
+        description: 'Send preview to Lucas only'
+        required: false
+        type: boolean
+        default: false
   push:
     branches: [main]
 
@@ -58,7 +63,7 @@ jobs:
         run: python send_weekly_summary.py
 
       - name: Send Friday Preview (to Lucas only)
-        if: github.event.schedule == '0 20 * * 5'
+        if: github.event.schedule == '0 20 * * 5' || inputs.send_preview
         env:
           ZENDESK_SUBDOMAIN: ${{ secrets.ZENDESK_SUBDOMAIN }}
           ZENDESK_EMAIL: ${{ secrets.ZENDESK_EMAIL }}
