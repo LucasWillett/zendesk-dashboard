@@ -240,9 +240,12 @@ def send_email(service, to_email, subject, html_content, plain_content):
         return False
 
 
-def main(test_mode=False):
+def main(test_mode=False, preview_mode=False):
     """Generate and send the weekly summary email"""
-    print("=== Weekly Beta Summary Email ===\n")
+    if preview_mode:
+        print("=== Friday Preview Email (Lucas only) ===\n")
+    else:
+        print("=== Weekly Beta Summary Email ===\n")
 
     # Get Gmail service
     service = get_gmail_service()
@@ -300,6 +303,13 @@ def main(test_mode=False):
         success = send_email(service, TEST_RECIPIENT, subject, full_html, full_plain)
         return success
 
+    # Preview mode - Friday preview to Lucas only
+    if preview_mode:
+        preview_subject = f"[PREVIEW] {subject}"
+        print(f"PREVIEW MODE - sending to: lucas@visitingmedia.com")
+        success = send_email(service, "lucas@visitingmedia.com", preview_subject, full_html, full_plain)
+        return success
+
     # Send summary to GTM + email
     print(f"Sending summary to {len(SUMMARY_RECIPIENTS)} recipients...")
     for recipient in SUMMARY_RECIPIENTS:
@@ -322,5 +332,6 @@ def main(test_mode=False):
 if __name__ == '__main__':
     import sys
     test_mode = '--test' in sys.argv
-    success = main(test_mode=test_mode)
+    preview_mode = '--preview' in sys.argv
+    success = main(test_mode=test_mode, preview_mode=preview_mode)
     exit(0 if success else 1)
